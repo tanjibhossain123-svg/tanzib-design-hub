@@ -32,6 +32,20 @@ interface Message {
   engine?: string;
 }
 
+// Client-side text purifier
+const cleanText = (str: string): string => {
+  if (!str) return '';
+  return str
+    .replace(/#{1,6}\s?/g, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/_(.*?)_/g, '$1')
+    .replace(/`{1,3}(.*?)`{1,3}/gs, '$1')
+    .replace(/^["']|["']$/g, '')
+    .trim();
+};
+
 export default function TanzibCoPilot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -52,7 +66,7 @@ export default function TanzibCoPilot() {
       setMessages([
         {
           role: 'assistant',
-          content: "👋 Hey Tanzib! I'm your 24/7 Strategic Design Co-Pilot. Attach any lead from your pipeline, ask me to draft custom pitches, counter low budgets, or brainstorm ideas. What deal are we closing right now?"
+          content: "Hey Tanzib! I am your 24/7 Strategic Design Co-Pilot. Attach any lead from your pipeline, ask me to draft custom pitches, counter low budgets, or brainstorm ideas. What deal are we closing today?"
         }
       ]);
     }
@@ -81,7 +95,7 @@ export default function TanzibCoPilot() {
   const toggleListening = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert('Voice dictation is supported in Chrome, Edge, and Safari.');
+      alert('Voice dictation is supported in Google Chrome, Edge, and Safari.');
       return;
     }
 
@@ -129,19 +143,19 @@ export default function TanzibCoPilot() {
 
       const data = await res.json();
       if (data.reply) {
-        setMessages([...updatedHistory, { role: 'assistant', content: data.reply, engine: data.engine }]);
+        setMessages([...updatedHistory, { role: 'assistant', content: cleanText(data.reply), engine: data.engine }]);
       } else {
-        setMessages([...updatedHistory, { role: 'assistant', content: '⚠️ Could not generate reply. Please retry.' }]);
+        setMessages([...updatedHistory, { role: 'assistant', content: 'Could not generate reply. Please try again.' }]);
       }
     } catch (err) {
-      setMessages([...updatedHistory, { role: 'assistant', content: '⚠️ Connection issue. Check your network.' }]);
+      setMessages([...updatedHistory, { role: 'assistant', content: 'Connection issue. Check your network.' }]);
     } finally {
       setLoading(false);
     }
   };
 
-  const copyText = (text: string, index: number) => {
-    navigator.clipboard.writeText(text);
+  const copyCleanText = (text: string, index: number) => {
+    navigator.clipboard.writeText(cleanText(text));
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
   };
@@ -151,7 +165,7 @@ export default function TanzibCoPilot() {
     setMessages([
       {
         role: 'assistant',
-        content: "Chat cleared! Ready for your next client proposal, Tanzib."
+        content: "Chat history cleared. Ready for your next client proposal, Tanzib."
       }
     ]);
   };
@@ -163,7 +177,7 @@ export default function TanzibCoPilot() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </Head>
 
-      {/* TOP APP BAR (Ultra-compact for mobile, spacious on desktop) */}
+      {/* TOP APP BAR */}
       <header className="bg-white border-b border-slate-200 px-3 sm:px-4 py-2.5 flex items-center justify-between flex-shrink-0 shadow-sm z-10">
         <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
           <Link
@@ -182,7 +196,7 @@ export default function TanzibCoPilot() {
               <h1 className="text-sm font-bold text-slate-900 leading-tight truncate">Tanzib Co-Pilot</h1>
               <p className="text-[10px] sm:text-[11px] text-emerald-600 font-semibold flex items-center gap-1 leading-none">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Active 24/7 • Mobile Ready
+                Active 24/7 • Clean Format
               </p>
             </div>
           </div>
@@ -197,7 +211,7 @@ export default function TanzibCoPilot() {
         </button>
       </header>
 
-      {/* RESPONSIVE PIPELINE LEAD SELECTOR */}
+      {/* LEAD CONTEXT SELECTOR */}
       <div className="bg-violet-50/90 border-b border-violet-100 px-3 sm:px-4 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs flex-shrink-0">
         <div className="flex items-center gap-1.5 overflow-hidden">
           <FileText className="h-3.5 w-3.5 text-violet-600 flex-shrink-0" />
@@ -228,7 +242,7 @@ export default function TanzibCoPilot() {
         </select>
       </div>
 
-      {/* CHAT THREAD (Auto-scrolls & padded for touch) */}
+      {/* CHAT LOG */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3.5">
         {messages.map((msg, idx) => {
           const isAssistant = msg.role === 'assistant';
@@ -254,7 +268,7 @@ export default function TanzibCoPilot() {
                     : 'bg-violet-600 text-white rounded-br-none'
                 }`}
               >
-                <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+                <div className="whitespace-pre-wrap break-words">{cleanText(msg.content)}</div>
 
                 {isAssistant && (
                   <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
@@ -263,18 +277,18 @@ export default function TanzibCoPilot() {
                       {msg.engine || 'AI Engine'}
                     </span>
                     <button
-                      onClick={() => copyText(msg.content, idx)}
-                      className="p-1 rounded text-slate-500 hover:text-slate-900 bg-slate-50 border border-slate-200 flex items-center gap-1 transition active:scale-95"
+                      onClick={() => copyCleanText(msg.content, idx)}
+                      className="p-1 rounded text-slate-600 hover:text-slate-900 bg-slate-50 border border-slate-200 flex items-center gap-1 transition active:scale-95"
                     >
                       {isCopied ? (
                         <>
                           <Check className="h-3 w-3 text-emerald-600" />
-                          <span className="text-emerald-600 font-semibold">Copied</span>
+                          <span className="text-emerald-600 font-semibold">Copied Clean</span>
                         </>
                       ) : (
                         <>
                           <Copy className="h-3 w-3" />
-                          <span>Copy</span>
+                          <span>Copy Plain Text</span>
                         </>
                       )}
                     </button>
@@ -292,15 +306,15 @@ export default function TanzibCoPilot() {
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-500 flex items-center gap-2 shadow-xs">
               <span className="h-2 w-2 rounded-full bg-violet-600 animate-pulse"></span>
-              Drafting high-converting pitch...
+              Drafting clean proposal...
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* QUICK PROMPT CHIPS (Touch-swipeable on mobile) */}
-      <div className="px-3 sm:px-4 py-2 bg-slate-50 border-t border-slate-200 flex items-center gap-1.5 overflow-x-auto text-[11px] sm:text-xs flex-shrink-0 no-scrollbar">
+      {/* QUICK CHIPS */}
+      <div className="px-3 sm:px-4 py-2 bg-slate-50 border-t border-slate-200 flex items-center gap-1.5 overflow-x-auto text-[11px] sm:text-xs flex-shrink-0">
         <span className="text-slate-400 font-semibold text-[10px] uppercase flex-shrink-0">Quick:</span>
         <button
           onClick={() => sendMessage("Draft a high-converting 3-sentence pitch for this lead focusing on speed and my portfolio.")}
@@ -322,7 +336,7 @@ export default function TanzibCoPilot() {
         </button>
       </div>
 
-      {/* INPUT DOCK (iOS safe-area, 16px font to stop mobile auto-zoom) */}
+      {/* INPUT DOCK */}
       <footer className="bg-white border-t border-slate-200 p-2.5 sm:p-3 flex-shrink-0 pb-[max(0.65rem,env(safe-area-inset-bottom))]">
         <form
           onSubmit={e => {
@@ -344,7 +358,6 @@ export default function TanzibCoPilot() {
             {isListening ? <MicOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Mic className="h-4 w-4 sm:h-5 sm:w-5" />}
           </button>
 
-          {/* 16px font on mobile prevents iOS Safari from zooming */}
           <input
             type="text"
             value={input}
