@@ -18,8 +18,6 @@ import {
   Share2,
   Sparkles,
   Phone,
-  Mail,
-  Linkedin
 } from 'lucide-react';
 
 interface Lead {
