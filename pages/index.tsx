@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 import confetti from 'canvas-confetti';
 import {
@@ -17,7 +18,7 @@ import {
   DollarSign,
   Share2,
   Sparkles,
-  Phone,
+  Phone
 } from 'lucide-react';
 
 interface Lead {
@@ -176,8 +177,17 @@ export default function TanzibDesignHub() {
             </div>
           </div>
 
-          {/* Quick Actions & Contact Links */}
+          {/* Quick Actions & Navigation Links */}
           <div className="flex items-center gap-2 flex-wrap text-xs">
+            {/* 🤖 24/7 AI DESIGN CO-PILOT BUTTON */}
+            <Link
+              href="/copilot"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold shadow-sm transition active:scale-95"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+              Design Co-Pilot
+            </Link>
+
             <a
               href="https://drive.google.com/drive/folders/1UDsUcIsEEhv1isTU_DuQlGQEdMmQ7e3H"
               target="_blank"
@@ -202,7 +212,8 @@ export default function TanzibDesignHub() {
             <button
               onClick={fetchLeads}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium shadow-sm transition disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition disabled:opacity-50"
+              title="Refresh Pipeline"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
               Refresh
